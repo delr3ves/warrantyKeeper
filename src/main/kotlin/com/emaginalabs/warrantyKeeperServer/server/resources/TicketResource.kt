@@ -1,14 +1,18 @@
 package com.emaginalabs.warrantyKeeperServer.server.resources
 
-import com.emaginalabs.warrantyKeeperServer.core.ticket.FindAllTickets
-import com.emaginalabs.warrantyKeeperServer.core.ticket.Ticket
+import com.emaginalabs.warrantyKeeperServer.core.ticket.*
 import com.emaginalabs.warrantyKeeperServer.server.errors.NotFoundException
 import org.springframework.web.bind.annotation.*
 import javax.ws.rs.PathParam
 
 @RestController
 class TicketResource(
-        private val findTickets: FindAllTickets) {
+        private val findTickets: FindAllTickets,
+        private val findTicketById: FindTicketById,
+        private val create: CreateTicket,
+        private val update: UpdateTicket,
+        private val delete: DeleteTicket
+) {
 
     @GetMapping("/ticket")
     fun findAllTickets(): List<Ticket> {
@@ -16,13 +20,18 @@ class TicketResource(
     }
 
     @PostMapping("/ticket")
-    fun createTicket(ticket: Ticket): Ticket {
-        return ticket
+    fun createTicket(@RequestBody ticket: Ticket): Ticket {
+        return create(ticket)
     }
 
     @GetMapping("/ticket/{id}")
     fun findTicket(@PathVariable("id") id: String): Ticket {
-        throw NotFoundException.from<Ticket>(id)
+        val ticket = findTicketById(id)
+        if(ticket != null) {
+            return ticket
+        } else {
+            throw NotFoundException.from<Ticket>(id)
+        }
     }
 
     @PutMapping("/ticket/{id}")
@@ -32,6 +41,6 @@ class TicketResource(
 
     @DeleteMapping("ticket/{id}")
     fun deleteTicket(@PathVariable("id") id: String) {
-
+        findTicketById(id)?.let { delete(it) }
     }
 }
